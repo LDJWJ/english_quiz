@@ -198,6 +198,41 @@
             font-size: 50px;
         }
 
+        .tts-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: transform 0.1s;
+            line-height: 1;
+        }
+
+        .tts-btn:active {
+            transform: scale(0.85);
+        }
+
+        .tts-btn.speaking {
+            animation: pulse 0.6s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 1; }
+            to { opacity: 0.4; }
+        }
+
+        .result-english {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 2px;
+        }
+
+        .result-english .tts-btn {
+            font-size: 20px;
+        }
+
         .word-card.correct .chick::before {
             content: '✨';
             font-size: 30px;
@@ -422,6 +457,7 @@
             <div class="word-card" id="wordCard">
                 <div class="chick">🐥</div>
                 <div class="korean-word" id="koreanWord">나무</div>
+                <button class="tts-btn" id="ttsKorBtn" onclick="speakKorean()" title="한국어 발음 듣기">🔊</button>
             </div>
             <div class="options" id="options">
                 <!-- JS로 생성 -->
@@ -455,13 +491,37 @@
         <div class="inner">
             <div class="result-text">
                 <h3 id="resultTitle">정답입니다!</h3>
-                <p id="resultMessage">계속 집중하세요!</p>
+                <div class="result-english">
+                    <p id="resultMessage">계속 집중하세요!</p>
+                    <button class="tts-btn" id="ttsEngBtn" onclick="speakEnglishAnswer()" title="영어 발음 듣기" style="display:none">🔊</button>
+                </div>
             </div>
             <button class="continue-btn" onclick="nextQuestion()">계속하기</button>
         </div>
     </div>
 
     <script>
+        // TTS
+        let currentEnglishAnswer = '';
+
+        function speak(text, lang) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = lang;
+            utter.rate = 0.9;
+            window.speechSynthesis.speak(utter);
+        }
+
+        function speakKorean() {
+            const word = document.getElementById('koreanWord').textContent;
+            speak(word, 'ko-KR');
+        }
+
+        function speakEnglishAnswer() {
+            speak(currentEnglishAnswer, 'en-US');
+        }
+
         // 100개 단어 데이터
         const words = [
             { korean: "나무", english: "Tree" },
@@ -733,11 +793,18 @@
             saveGameState();
             updateDisplay();
             panel.style.display = 'block';
+
+            // 영어 발음 자동 재생 + 결과 패널 버튼 표시
+            currentEnglishAnswer = correct.english;
+            document.getElementById('ttsEngBtn').style.display = 'inline-block';
+            setTimeout(() => speak(correct.english, 'en-US'), 300);
         }
 
         // 다음 문제
         function nextQuestion() {
+            window.speechSynthesis && window.speechSynthesis.cancel();
             document.getElementById('resultPanel').style.display = 'none';
+            document.getElementById('ttsEngBtn').style.display = 'none';
             gameState.currentQuestion++;
             showQuestion();
         }
