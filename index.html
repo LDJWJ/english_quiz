@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>단어 챌린지</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+        }
+
+        /* 헤더 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            margin-bottom: 15px;
+        }
+
+        .hearts {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff4b6e;
+        }
+
+        .hearts::before {
+            content: '❤️';
+            font-size: 24px;
+        }
+
+        .streak {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff9500;
+        }
+
+        .streak::before {
+            content: '🔥';
+            font-size: 24px;
+        }
+
+        /* 문제 번호 */
+        .progress-numbers {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .progress-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            background: #e8e8e8;
+            color: #b0b0b0;
+            border: 2px solid transparent;
+        }
+
+        .progress-num.active {
+            background: #ffffff;
+            color: #58cc02;
+            border: 2px solid #58cc02;
+        }
+
+        .progress-num.completed {
+            background: #58cc02;
+            color: white;
+        }
+
+        .progress-num.wrong {
+            background: #ff4b6e;
+            color: white;
+        }
+
+        /* 메인 화면 */
+        .main-screen {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .chick-container {
+            width: 180px;
+            height: 180px;
+            margin: 40px auto;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chick {
+            font-size: 80px;
+            margin-bottom: 5px;
+        }
+
+        .xp-badge {
+            background: #58cc02;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0 10px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 40px;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 18px;
+            background: #58cc02;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #46a302;
+            transition: all 0.1s;
+        }
+
+        .start-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* 퀴즈 화면 */
+        .quiz-screen {
+            display: none;
+            padding: 10px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .word-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .word-card .chick {
+            font-size: 50px;
+        }
+
+        .word-card.correct .chick::before {
+            content: '✨';
+            font-size: 30px;
+        }
+
+        .word-card.correct .chick::after {
+            content: '✨';
+            font-size: 30px;
+        }
+
+        .korean-word {
+            font-size: 48px;
+            font-weight: bold;
+            color: #1976d2;
+            margin-top: 10px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            border-color: #58cc02;
+            background: #f5fff5;
+        }
+
+        .option-btn .num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .option-btn.correct {
+            border-color: #58cc02;
+            background: #e8f5e9;
+        }
+
+        .option-btn.correct .num {
+            background: #58cc02;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            border-color: #ff4b6e;
+            background: #ffebee;
+        }
+
+        .option-btn.wrong .num {
+            background: #ff4b6e;
+            color: white;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        /* 결과 패널 */
+        .result-panel {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            text-align: left;
+        }
+
+        .result-panel.correct {
+            background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+        }
+
+        .result-panel.wrong {
+            background: linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%);
+        }
+
+        .result-panel .inner {
+            max-width: 400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-text h3 {
+            font-size: 20px;
+            color: #2e7d32;
+            margin-bottom: 5px;
+        }
+
+        .result-panel.wrong .result-text h3 {
+            color: #c62828;
+        }
+
+        .result-text p {
+            font-size: 14px;
+            color: #388e3c;
+        }
+
+        .result-panel.wrong .result-text p {
+            color: #d32f2f;
+        }
+
+        .continue-btn {
+            padding: 14px 30px;
+            background: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* 완료 화면 */
+        .complete-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .complete-screen .chick {
+            font-size: 100px;
+        }
+
+        .complete-screen h2 {
+            font-size: 28px;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .stats {
+            background: #f5f5f5;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 18px;
+        }
+
+        .stat-item:not(:last-child) {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-value.xp {
+            color: #58cc02;
+        }
+
+        /* 숨김 */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <div class="hearts"><span id="heartCount">5</span></div>
+            <div class="streak"><span id="streakCount">0</span></div>
+        </div>
+
+        <!-- 문제 번호 -->
+        <div class="progress-numbers" id="progressNumbers">
+            <!-- JS로 생성 -->
+        </div>
+
+        <!-- 메인 화면 -->
+        <div class="main-screen" id="mainScreen">
+            <div class="chick-container">
+                <div class="chick">🐥</div>
+                <div class="xp-badge"><span id="totalXP">0</span> XP</div>
+            </div>
+            <h1 class="title">단어 챌린지</h1>
+            <p class="subtitle">매일 10개 단어를 정복하세요!</p>
+            <p class="info-text">데이터는 브라우저에 자동 저장됩니다.</p>
+            <button class="start-btn" onclick="startChallenge()">도전 시작</button>
+        </div>
+
+        <!-- 퀴즈 화면 -->
+        <div class="quiz-screen" id="quizScreen">
+            <p class="question-text">이 단어의 뜻은?</p>
+            <div class="word-card" id="wordCard">
+                <div class="chick">🐥</div>
+                <div class="korean-word" id="koreanWord">나무</div>
+            </div>
+            <div class="options" id="options">
+                <!-- JS로 생성 -->
+            </div>
+        </div>
+
+        <!-- 완료 화면 -->
+        <div class="complete-screen" id="completeScreen">
+            <div class="chick">🎉🐥🎉</div>
+            <h2>챌린지 완료!</h2>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">맞은 문제</span>
+                    <span class="stat-value" id="correctCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">틀린 문제</span>
+                    <span class="stat-value" id="wrongCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">획득 XP</span>
+                    <span class="stat-value xp" id="earnedXP">+0</span>
+                </div>
+            </div>
+            <button class="start-btn" onclick="resetChallenge()">다시 도전하기</button>
+        </div>
+    </div>
+
+    <!-- 결과 패널 -->
+    <div class="result-panel" id="resultPanel">
+        <div class="inner">
+            <div class="result-text">
+                <h3 id="resultTitle">정답입니다!</h3>
+                <p id="resultMessage">계속 집중하세요!</p>
+            </div>
+            <button class="continue-btn" onclick="nextQuestion()">계속하기</button>
+        </div>
+    </div>
+
+    <script>
+        // 100개 단어 데이터
+        const words = [
+            { korean: "나무", english: "Tree" },
+            { korean: "사과", english: "Apple" },
+            { korean: "책", english: "Book" },
+            { korean: "물", english: "Water" },
+            { korean: "불", english: "Fire" },
+            { korean: "하늘", english: "Sky" },
+            { korean: "바다", english: "Sea" },
+            { korean: "산", english: "Mountain" },
+            { korean: "꽃", english: "Flower" },
+            { korean: "새", english: "Bird" },
+            { korean: "개", english: "Dog" },
+            { korean: "고양이", english: "Cat" },
+            { korean: "집", english: "House" },
+            { korean: "학교", english: "School" },
+            { korean: "친구", english: "Friend" },
+            { korean: "가족", english: "Family" },
+            { korean: "사랑", english: "Love" },
+            { korean: "행복", english: "Happiness" },
+            { korean: "시간", english: "Time" },
+            { korean: "돈", english: "Money" },
+            { korean: "음악", english: "Music" },
+            { korean: "영화", english: "Movie" },
+            { korean: "게임", english: "Game" },
+            { korean: "음식", english: "Food" },
+            { korean: "커피", english: "Coffee" },
+            { korean: "차", english: "Car" },
+            { korean: "버스", english: "Bus" },
+            { korean: "비행기", english: "Airplane" },
+            { korean: "기차", english: "Train" },
+            { korean: "자전거", english: "Bicycle" },
+            { korean: "전화", english: "Phone" },
+            { korean: "컴퓨터", english: "Computer" },
+            { korean: "인터넷", english: "Internet" },
+            { korean: "사진", english: "Photo" },
+            { korean: "카메라", english: "Camera" },
+            { korean: "태양", english: "Sun" },
+            { korean: "달", english: "Moon" },
+            { korean: "별", english: "Star" },
+            { korean: "구름", english: "Cloud" },
+            { korean: "비", english: "Rain" },
+            { korean: "눈", english: "Snow" },
+            { korean: "바람", english: "Wind" },
+            { korean: "봄", english: "Spring" },
+            { korean: "여름", english: "Summer" },
+            { korean: "가을", english: "Autumn" },
+            { korean: "겨울", english: "Winter" },
+            { korean: "아침", english: "Morning" },
+            { korean: "점심", english: "Lunch" },
+            { korean: "저녁", english: "Evening" },
+            { korean: "밤", english: "Night" },
+            { korean: "오늘", english: "Today" },
+            { korean: "내일", english: "Tomorrow" },
+            { korean: "어제", english: "Yesterday" },
+            { korean: "주말", english: "Weekend" },
+            { korean: "휴일", english: "Holiday" },
+            { korean: "생일", english: "Birthday" },
+            { korean: "선물", english: "Gift" },
+            { korean: "파티", english: "Party" },
+            { korean: "노래", english: "Song" },
+            { korean: "춤", english: "Dance" },
+            { korean: "그림", english: "Picture" },
+            { korean: "색깔", english: "Color" },
+            { korean: "빨강", english: "Red" },
+            { korean: "파랑", english: "Blue" },
+            { korean: "노랑", english: "Yellow" },
+            { korean: "초록", english: "Green" },
+            { korean: "검정", english: "Black" },
+            { korean: "하양", english: "White" },
+            { korean: "숫자", english: "Number" },
+            { korean: "하나", english: "One" },
+            { korean: "둘", english: "Two" },
+            { korean: "셋", english: "Three" },
+            { korean: "열", english: "Ten" },
+            { korean: "백", english: "Hundred" },
+            { korean: "천", english: "Thousand" },
+            { korean: "머리", english: "Head" },
+            { korean: "눈", english: "Eye" },
+            { korean: "코", english: "Nose" },
+            { korean: "입", english: "Mouth" },
+            { korean: "귀", english: "Ear" },
+            { korean: "손", english: "Hand" },
+            { korean: "발", english: "Foot" },
+            { korean: "심장", english: "Heart" },
+            { korean: "피", english: "Blood" },
+            { korean: "뼈", english: "Bone" },
+            { korean: "의사", english: "Doctor" },
+            { korean: "선생님", english: "Teacher" },
+            { korean: "학생", english: "Student" },
+            { korean: "회사원", english: "Employee" },
+            { korean: "요리사", english: "Chef" },
+            { korean: "경찰", english: "Police" },
+            { korean: "소방관", english: "Firefighter" },
+            { korean: "운동", english: "Exercise" },
+            { korean: "축구", english: "Soccer" },
+            { korean: "야구", english: "Baseball" },
+            { korean: "농구", english: "Basketball" },
+            { korean: "수영", english: "Swimming" },
+            { korean: "달리기", english: "Running" },
+            { korean: "잠", english: "Sleep" },
+            { korean: "꿈", english: "Dream" }
+        ];
+
+        // 게임 상태
+        let gameState = {
+            hearts: 5,
+            streak: 0,
+            totalXP: 0,
+            currentQuestion: 0,
+            correctAnswers: 0,
+            wrongAnswers: 0,
+            sessionXP: 0,
+            questionResults: [],
+            currentWords: []
+        };
+
+        // 로컬 스토리지에서 데이터 로드
+        function loadGameState() {
+            const saved = localStorage.getItem('wordChallengeState');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                gameState.totalXP = parsed.totalXP || 0;
+                gameState.streak = parsed.streak || 0;
+            }
+            updateDisplay();
+        }
+
+        // 로컬 스토리지에 저장
+        function saveGameState() {
+            localStorage.setItem('wordChallengeState', JSON.stringify({
+                totalXP: gameState.totalXP,
+                streak: gameState.streak
+            }));
+        }
+
+        // 화면 업데이트
+        function updateDisplay() {
+            document.getElementById('heartCount').textContent = gameState.hearts;
+            document.getElementById('streakCount').textContent = gameState.streak;
+            document.getElementById('totalXP').textContent = gameState.totalXP;
+            updateProgressNumbers();
+        }
+
+        // 문제 번호 업데이트
+        function updateProgressNumbers() {
+            const container = document.getElementById('progressNumbers');
+            container.innerHTML = '';
+            for (let i = 1; i <= 10; i++) {
+                const num = document.createElement('div');
+                num.className = 'progress-num';
+                num.textContent = i;
+
+                if (i < gameState.currentQuestion + 1) {
+                    if (gameState.questionResults[i-1] === true) {
+                        num.classList.add('completed');
+                    } else if (gameState.questionResults[i-1] === false) {
+                        num.classList.add('wrong');
+                    }
+                } else if (i === gameState.currentQuestion + 1) {
+                    num.classList.add('active');
+                }
+                container.appendChild(num);
+            }
+        }
+
+        // 랜덤 단어 10개 선택
+        function selectRandomWords() {
+            const shuffled = [...words].sort(() => Math.random() - 0.5);
+            gameState.currentWords = shuffled.slice(0, 10);
+        }
+
+        // 보기 생성 (정답 + 오답 3개)
+        function generateOptions(correctWord) {
+            const options = [correctWord];
+            const otherWords = words.filter(w => w.english !== correctWord.english);
+            const shuffled = otherWords.sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < 3 && i < shuffled.length; i++) {
+                options.push(shuffled[i]);
+            }
+
+            return options.sort(() => Math.random() - 0.5);
+        }
+
+        // 챌린지 시작
+        function startChallenge() {
+            gameState.hearts = 5;
+            gameState.currentQuestion = 0;
+            gameState.correctAnswers = 0;
+            gameState.wrongAnswers = 0;
+            gameState.sessionXP = 0;
+            gameState.questionResults = [];
+
+            selectRandomWords();
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('quizScreen').style.display = 'block';
+            document.getElementById('completeScreen').style.display = 'none';
+
+            showQuestion();
+        }
+
+        // 문제 표시
+        function showQuestion() {
+            if (gameState.currentQuestion >= 10 || gameState.hearts <= 0) {
+                showComplete();
+                return;
+            }
+
+            const word = gameState.currentWords[gameState.currentQuestion];
+            document.getElementById('koreanWord').textContent = word.korean;
+            document.getElementById('wordCard').classList.remove('correct');
+
+            const options = generateOptions(word);
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+
+            options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="num">${index + 1}</span>${opt.english}`;
+                btn.onclick = () => checkAnswer(opt, word, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            updateDisplay();
+        }
+
+        // 정답 확인
+        function checkAnswer(selected, correct, button) {
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            const isCorrect = selected.english === correct.english;
+            const panel = document.getElementById('resultPanel');
+
+            if (isCorrect) {
+                button.classList.add('correct');
+                document.getElementById('wordCard').classList.add('correct');
+                panel.className = 'result-panel correct';
+                document.getElementById('resultTitle').textContent = '정답입니다!';
+                document.getElementById('resultMessage').textContent = '계속 집중하세요!';
+
+                gameState.correctAnswers++;
+                gameState.streak++;
+                gameState.sessionXP += 10 + (gameState.streak > 1 ? gameState.streak : 0);
+                gameState.totalXP += 10 + (gameState.streak > 1 ? gameState.streak : 0);
+                gameState.questionResults.push(true);
+            } else {
+                button.classList.add('wrong');
+                // 정답 표시
+                buttons.forEach(btn => {
+                    if (btn.textContent.includes(correct.english)) {
+                        btn.classList.add('correct');
+                    }
+                });
+
+                panel.className = 'result-panel wrong';
+                document.getElementById('resultTitle').textContent = '틀렸습니다!';
+                document.getElementById('resultMessage').textContent = `정답: ${correct.english}`;
+
+                gameState.wrongAnswers++;
+                gameState.hearts--;
+                gameState.streak = 0;
+                gameState.questionResults.push(false);
+            }
+
+            saveGameState();
+            updateDisplay();
+            panel.style.display = 'block';
+        }
+
+        // 다음 문제
+        function nextQuestion() {
+            document.getElementById('resultPanel').style.display = 'none';
+            gameState.currentQuestion++;
+            showQuestion();
+        }
+
+        // 완료 화면
+        function showComplete() {
+            document.getElementById('quizScreen').style.display = 'none';
+            document.getElementById('completeScreen').style.display = 'block';
+            document.getElementById('resultPanel').style.display = 'none';
+
+            document.getElementById('correctCount').textContent = gameState.correctAnswers;
+            document.getElementById('wrongCount').textContent = gameState.wrongAnswers;
+            document.getElementById('earnedXP').textContent = '+' + gameState.sessionXP;
+        }
+
+        // 리셋
+        function resetChallenge() {
+            document.getElementById('completeScreen').style.display = 'none';
+            document.getElementById('mainScreen').classList.remove('hidden');
+            gameState.hearts = 5;
+            updateDisplay();
+        }
+
+        // 초기화
+        loadGameState();
+        updateProgressNumbers();
+    </script>
+</body>
+</html>
